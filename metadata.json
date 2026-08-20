@@ -1,0 +1,56 @@
+{
+  "name": "miharp-openvox_gui",
+  "version": "0.1.0",
+  "author": "Mike Harp",
+  "summary": "Installs and manages OpenVox GUI, a web management console for OpenVox/Puppet infrastructure",
+  "license": "Apache-2.0",
+  "source": "https://github.com/miharp/puppet-openvox_gui",
+  "project_page": "https://github.com/miharp/puppet-openvox_gui",
+  "issues_url": "https://github.com/miharp/puppet-openvox_gui/issues",
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 9.0.0 < 10.0.0"
+    },
+    {
+      "name": "puppetlabs/vcsrepo",
+      "version_requirement": ">= 6.0.0 < 8.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "10"
+      ]
+    },
+    {
+      "operatingsystem": "Rocky",
+      "operatingsystemrelease": [
+        "10"
+      ]
+    },
+    {
+      "operatingsystem": "AlmaLinux",
+      "operatingsystemrelease": [
+        "10"
+      ]
+    },
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": [
+        "24.04"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 8.0.0 < 9.0.0"
+    },
+    {
+      "name": "openvox",
+      "version_requirement": ">= 8.0.0 < 9.0.0"
+    }
+  ]
+}

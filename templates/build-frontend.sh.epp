@@ -1,0 +1,17 @@
+<%- | Stdlib::Absolutepath $src_dir | -%>
+#!/bin/bash
+# This file is managed by Puppet.
+#
+# Builds the OpenVox GUI React frontend. On aarch64 npm misses the rollup
+# native binding on the first install (https://github.com/npm/cli/issues/4828),
+# so it is added explicitly before building. Stamps frontend/.built-version
+# on success so Puppet re-runs the build only when the checked-out VERSION
+# changes.
+set -e
+cd '<%= $src_dir %>/frontend'
+npm install
+if [ "$(uname -m)" = "aarch64" ]; then
+  npm install @rollup/rollup-linux-arm64-gnu
+fi
+npm run build
+cp ../VERSION .built-version

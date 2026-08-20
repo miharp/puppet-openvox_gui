@@ -1,0 +1,62 @@
+<%- | Stdlib::Absolutepath $install_dir,
+      Stdlib::Port $app_port,
+      String[1] $app_host,
+      Stdlib::Host $puppet_server_host,
+      Stdlib::Port $puppet_server_port,
+      Stdlib::Host $puppetdb_host,
+      Stdlib::Port $puppetdb_port,
+      Boolean $ssl_enabled,
+      Stdlib::Absolutepath $ssl_cert,
+      Stdlib::Absolutepath $ssl_key,
+      Enum['local', 'none'] $auth_backend,
+      String[1] $admin_username,
+      String[1] $admin_password,
+      String[1] $service_user,
+      String[1] $service_group,
+      Integer[1] $uvicorn_workers,
+      Boolean $configure_selinux,
+      Hash[String[1], Variant[String, Integer, Boolean]] $extra_settings,
+| -%>
+# This file is managed by Puppet.
+# Unattended installation configuration for openvox-gui (install.sh -c).
+
+INSTALL_DIR=<%= $install_dir %>
+APP_PORT=<%= $app_port %>
+APP_HOST=<%= $app_host %>
+
+PUPPET_SERVER_HOST=<%= $puppet_server_host %>
+PUPPET_SERVER_PORT=<%= $puppet_server_port %>
+PUPPETDB_HOST=<%= $puppetdb_host %>
+PUPPETDB_PORT=<%= $puppetdb_port %>
+
+SSL_ENABLED=<%= $ssl_enabled %>
+<% if $ssl_enabled { -%>
+SSL_CERT_PATH=<%= $ssl_cert %>
+SSL_KEY_PATH=<%= $ssl_key %>
+<% } -%>
+
+AUTH_BACKEND=<%= $auth_backend %>
+<% if $auth_backend == 'local' { -%>
+ADMIN_USERNAME=<%= $admin_username %>
+ADMIN_PASSWORD=<%= $admin_password %>
+<% } -%>
+
+SERVICE_USER=<%= $service_user %>
+SERVICE_GROUP=<%= $service_group %>
+UVICORN_WORKERS=<%= $uvicorn_workers %>
+
+# The frontend is pre-built by Puppet and Node.js is provided outside the
+# installer (see openvox_gui::install). Firewall rules, the agent package
+# mirror, and ENC wiring are managed outside this module.
+BUILD_FRONTEND=false
+INSTALL_NODEJS=false
+CONFIGURE_FIREWALL=false
+CONFIGURE_PKG_REPO=false
+CONFIGURE_SELINUX=<%= $configure_selinux %>
+<% unless $extra_settings.empty { -%>
+
+# Extra settings (openvox_gui::extra_settings); last assignment wins.
+<% $extra_settings.each |$key, $value| { -%>
+<%= $key %>=<%= $value %>
+<% } -%>
+<% } -%>
