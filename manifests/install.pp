@@ -7,6 +7,25 @@ class openvox_gui::install {
   $src_dir = $openvox_gui::src_dir
   $revision = pick($openvox_gui::revision, "v${openvox_gui::version}")
 
+  # The installer's own user creation silently fails on hosts where the
+  # service group does not pre-exist (its useradd discards errors), which
+  # is every host without an OpenVox Server package. Only ensure and gid
+  # are enforced, so a pre-existing user (e.g. 'puppet' on the server
+  # itself) is left untouched.
+  if $openvox_gui::manage_service_user {
+    group { $openvox_gui::service_group:
+      ensure => present,
+      system => true,
+    }
+
+    user { $openvox_gui::service_user:
+      ensure  => present,
+      system  => true,
+      gid     => $openvox_gui::service_group,
+      require => Group[$openvox_gui::service_group],
+    }
+  }
+
   if $openvox_gui::manage_dependencies {
     package { $openvox_gui::dependency_packages:
       ensure => installed,

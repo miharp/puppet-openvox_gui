@@ -84,6 +84,7 @@ The following parameters are available in the `openvox_gui` class:
 * [`auth_backend`](#-openvox_gui--auth_backend)
 * [`service_user`](#-openvox_gui--service_user)
 * [`service_group`](#-openvox_gui--service_group)
+* [`manage_service_user`](#-openvox_gui--manage_service_user)
 * [`uvicorn_workers`](#-openvox_gui--uvicorn_workers)
 * [`configure_selinux`](#-openvox_gui--configure_selinux)
 * [`extra_settings`](#-openvox_gui--extra_settings)
@@ -240,8 +241,7 @@ Default value: `'local'`
 
 Data type: `String[1]`
 
-System user the service runs as. The installer creates it if missing
-and adds it to the 'puppet' group for certificate access.
+System user the service runs as.
 
 Default value: `'puppet'`
 
@@ -252,6 +252,18 @@ Data type: `String[1]`
 Group the service runs as.
 
 Default value: `'puppet'`
+
+##### <a name="-openvox_gui--manage_service_user"></a>`manage_service_user`
+
+Data type: `Boolean`
+
+Whether to ensure the service user and group exist. The installer's
+own user creation silently fails on hosts where the service group
+does not pre-exist. Safe to leave on where the user already exists
+(only presence and primary group are enforced); disable if another
+module manages the user.
+
+Default value: `true`
 
 ##### <a name="-openvox_gui--uvicorn_workers"></a>`uvicorn_workers`
 
@@ -285,9 +297,10 @@ Default value: `{}`
 
 Data type: `Boolean`
 
-Whether to manage the packages needed to check out the source and
-build the frontend. Set to false to provide git and Node.js >= 18
-yourself (required on platforms whose default Node.js is older).
+Whether to manage the packages needed to check out the source, build
+the frontend, and guard the installer runs. Set to false to provide
+git, Node.js >= 18, npm, and diffutils yourself (required on
+platforms whose default Node.js is older).
 
 Default value: `true`
 
@@ -297,7 +310,7 @@ Data type: `Array[String[1]]`
 
 The packages installed when manage_dependencies is true.
 
-Default value: `['git', 'nodejs', 'npm']`
+Default value: `['git', 'nodejs', 'npm', 'diffutils']`
 
 ##### <a name="-openvox_gui--build_timeout"></a>`build_timeout`
 

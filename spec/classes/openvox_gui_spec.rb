@@ -28,6 +28,17 @@ describe 'openvox_gui' do
       it { is_expected.to contain_package('git') }
       it { is_expected.to contain_package('nodejs') }
       it { is_expected.to contain_package('npm') }
+      it { is_expected.to contain_package('diffutils') }
+
+      it { is_expected.to contain_group('puppet').with_system(true) }
+      it { is_expected.to contain_user('puppet').with_gid('puppet').with_system(true) }
+
+      context 'with manage_service_user => false' do
+        let(:params) { super().merge(manage_service_user: false) }
+
+        it { is_expected.not_to contain_user('puppet') }
+        it { is_expected.to compile.with_all_deps }
+      end
 
       it do
         expect(subject).to contain_vcsrepo('/opt/openvox-gui-src')

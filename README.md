@@ -43,8 +43,9 @@ unattended and repeatably:
   and the rendered `install.conf` answer file (root-only, contains the
   admin password).
 * The `openvox-gui` systemd service, running as the `puppet` user by
-  default.
-* The `git`, `nodejs`, and `npm` packages (disable with
+  default, and that user and group themselves (presence only; disable
+  with `manage_service_user => false`).
+* The `git`, `nodejs`, `npm`, and `diffutils` packages (disable with
   `manage_dependencies => false`).
 * Via the upstream installer: the service user's sudoers rules in
   `/etc/sudoers.d/openvox-gui-users`, and SELinux booleans/port contexts

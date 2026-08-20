@@ -76,10 +76,15 @@
 #   'local' for username/password authentication, 'none' to disable
 #   authentication entirely.
 # @param service_user
-#   System user the service runs as. The installer creates it if missing
-#   and adds it to the 'puppet' group for certificate access.
+#   System user the service runs as.
 # @param service_group
 #   Group the service runs as.
+# @param manage_service_user
+#   Whether to ensure the service user and group exist. The installer's
+#   own user creation silently fails on hosts where the service group
+#   does not pre-exist. Safe to leave on where the user already exists
+#   (only presence and primary group are enforced); disable if another
+#   module manages the user.
 # @param uvicorn_workers
 #   Number of uvicorn worker processes serving the backend.
 # @param configure_selinux
@@ -91,9 +96,10 @@
 #   without a dedicated parameter, e.g. a PostgreSQL backend:
 #   { 'OPENVOX_GUI_DB_BACKEND' => 'postgresql' }.
 # @param manage_dependencies
-#   Whether to manage the packages needed to check out the source and
-#   build the frontend. Set to false to provide git and Node.js >= 18
-#   yourself (required on platforms whose default Node.js is older).
+#   Whether to manage the packages needed to check out the source, build
+#   the frontend, and guard the installer runs. Set to false to provide
+#   git, Node.js >= 18, npm, and diffutils yourself (required on
+#   platforms whose default Node.js is older).
 # @param dependency_packages
 #   The packages installed when manage_dependencies is true.
 # @param build_timeout
@@ -128,11 +134,12 @@ class openvox_gui (
   Enum['local', 'none'] $auth_backend = 'local',
   String[1] $service_user = 'puppet',
   String[1] $service_group = 'puppet',
+  Boolean $manage_service_user = true,
   Integer[1] $uvicorn_workers = 2,
   Boolean $configure_selinux = $facts['os']['family'] == 'RedHat',
   Hash[String[1], Variant[String, Integer, Boolean]] $extra_settings = {},
   Boolean $manage_dependencies = true,
-  Array[String[1]] $dependency_packages = ['git', 'nodejs', 'npm'],
+  Array[String[1]] $dependency_packages = ['git', 'nodejs', 'npm', 'diffutils'],
   Integer[1] $build_timeout = 600,
   Integer[1] $install_timeout = 900,
   Boolean $service_manage = true,
