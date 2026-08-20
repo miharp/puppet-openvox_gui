@@ -41,7 +41,8 @@ unattended and repeatably:
 * The source checkout (`/opt/openvox-gui-src`) and the application
   (`/opt/openvox-gui`), including a Python virtualenv, the `ovox` CLI,
   and the rendered `install.conf` answer file (root-only, contains the
-  admin password).
+  admin password). Installer runs log to
+  `/var/log/openvox-gui-install.log`.
 * The `openvox-gui` systemd service, running as the `puppet` user by
   default, and that user and group themselves (presence only; disable
   with `manage_service_user => false`).
@@ -58,6 +59,10 @@ stay under your control (see [Limitations](#limitations)).
 
 ### Setup requirements
 
+* `sudo` must be installed: the upstream installer writes the service
+  user's rules to `/etc/sudoers.d/`. The module does not manage the
+  sudo package itself, to stay out of the way of modules that do
+  (e.g. `saz/sudo`).
 * Node.js >= 18 must be installable as the `nodejs` package (true on the
   supported platforms). On platforms whose default Node.js is older
   (e.g. EL9 ships 16), provide Node.js 18+ yourself and set

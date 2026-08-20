@@ -59,15 +59,20 @@ class openvox_gui::config {
   # re-converges.
   $stamp_conf = "${install_dir}/.puppet-install.conf"
   $stamp_version = "${install_dir}/.puppet-install-version"
+
+  # The installer's output goes to a log file rather than through Puppet:
+  # it prints UTF-8 (check marks, box drawing), and an agent running
+  # under a non-UTF-8 locale dies ingesting that with "invalid byte
+  # sequence in US-ASCII". On failure an ASCII-transliterated tail of the
+  # log is surfaced in the agent output.
+  $install_log = '/var/log/openvox-gui-install.log'
+  $on_fail = "{ tail -n 40 ${install_log} | iconv -c -f UTF-8 -t ASCII//TRANSLIT; exit 1; }"
   $install_cmd = [
-    'bash install.sh -c install.conf',
+    "bash install.sh -c install.conf > ${install_log} 2>&1 || ${on_fail}",
     "install -m 0600 install.conf ${stamp_conf}",
     "install -m 0644 VERSION ${stamp_version}",
   ].join(' && ')
 
-  # The installer prints UTF-8 (check marks, box drawing); under a
-  # non-UTF-8 locale Puppet fails logging that output with "invalid byte
-  # sequence in US-ASCII", killing the run partway.
   exec { 'openvox_gui run installer':
     command     => "/bin/bash -c '${install_cmd}'",
     cwd         => $src_dir,
