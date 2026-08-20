@@ -57,10 +57,13 @@ class openvox_gui::install {
     require => Vcsrepo[$src_dir],
   }
 
+  # The UTF-8 locale keeps Puppet's output logging from choking on
+  # npm's non-ASCII output (see the installer exec in config.pp).
   exec { 'openvox_gui build frontend':
-    command => "/bin/bash ${src_dir}/build-frontend.sh",
-    unless  => "/usr/bin/cmp -s ${src_dir}/VERSION ${src_dir}/frontend/.built-version",
-    timeout => $openvox_gui::build_timeout,
-    require => File["${src_dir}/build-frontend.sh"],
+    command     => "/bin/bash ${src_dir}/build-frontend.sh",
+    unless      => "/usr/bin/cmp -s ${src_dir}/VERSION ${src_dir}/frontend/.built-version",
+    environment => ['LANG=C.UTF-8', 'LC_ALL=C.UTF-8'],
+    timeout     => $openvox_gui::build_timeout,
+    require     => File["${src_dir}/build-frontend.sh"],
   }
 }

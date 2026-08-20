@@ -65,11 +65,15 @@ class openvox_gui::config {
     "install -m 0644 VERSION ${stamp_version}",
   ].join(' && ')
 
+  # The installer prints UTF-8 (check marks, box drawing); under a
+  # non-UTF-8 locale Puppet fails logging that output with "invalid byte
+  # sequence in US-ASCII", killing the run partway.
   exec { 'openvox_gui run installer':
-    command => "/bin/bash -c '${install_cmd}'",
-    cwd     => $src_dir,
-    unless  => "/bin/bash -c 'cmp -s install.conf ${stamp_conf} && cmp -s VERSION ${stamp_version}'",
-    timeout => $openvox_gui::install_timeout,
-    require => File["${src_dir}/install.conf"],
+    command     => "/bin/bash -c '${install_cmd}'",
+    cwd         => $src_dir,
+    environment => ['LANG=C.UTF-8', 'LC_ALL=C.UTF-8'],
+    unless      => "/bin/bash -c 'cmp -s install.conf ${stamp_conf} && cmp -s VERSION ${stamp_version}'",
+    timeout     => $openvox_gui::install_timeout,
+    require     => File["${src_dir}/install.conf"],
   }
 }

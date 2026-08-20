@@ -45,7 +45,8 @@ unattended and repeatably:
 * The `openvox-gui` systemd service, running as the `puppet` user by
   default, and that user and group themselves (presence only; disable
   with `manage_service_user => false`).
-* The `git`, `nodejs`, `npm`, and `diffutils` packages (disable with
+* The `git`, `nodejs`, `npm`, and `diffutils` packages, plus
+  `python3-venv` on the Debian family (disable with
   `manage_dependencies => false`).
 * Via the upstream installer: the service user's sudoers rules in
   `/etc/sudoers.d/openvox-gui-users`, and SELinux booleans/port contexts

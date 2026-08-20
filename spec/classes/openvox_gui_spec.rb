@@ -30,6 +30,14 @@ describe 'openvox_gui' do
       it { is_expected.to contain_package('npm') }
       it { is_expected.to contain_package('diffutils') }
 
+      it 'installs python3-venv only where python3 lacks venv' do
+        if os_facts[:os]['family'] == 'Debian'
+          expect(subject).to contain_package('python3-venv')
+        else
+          expect(subject).not_to contain_package('python3-venv')
+        end
+      end
+
       it { is_expected.to contain_group('puppet').with_system(true) }
       it { is_expected.to contain_user('puppet').with_gid('puppet').with_system(true) }
 

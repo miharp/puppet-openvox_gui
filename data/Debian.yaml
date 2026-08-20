@@ -1,0 +1,9 @@
+# The Debian family splits the venv module (with ensurepip) out of the
+# python3 package; without it the installer's virtualenv is created
+# without pip and the install fails at the dependency step.
+openvox_gui::dependency_packages:
+  - 'git'
+  - 'nodejs'
+  - 'npm'
+  - 'diffutils'
+  - 'python3-venv'
