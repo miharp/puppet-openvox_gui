@@ -156,11 +156,12 @@ with puppet-strings (`bundle exec rake strings:generate:reference`).
 
 * **Installer-based**: deployment runs upstream's `install.sh` under an
   idempotency guard, rather than managing every file as a Puppet
-  resource. A run re-converges on the next agent run if the installer's
-  final health check loses a race against a slow first service start.
-  Don't delete the `.puppet-install.conf` / `.puppet-install-version`
-  stamp files in the install directory — they are the "already
-  installed" markers.
+  resource. The installer's own final health check probes plain http
+  even when the GUI serves TLS (so it always reports failure on TLS
+  installs); the module re-verifies with the correct scheme and counts
+  the install as successful when the service answers. Don't delete the
+  `.puppet-install.conf` / `.puppet-install-version` stamp files in the
+  install directory — they are the "already installed" markers.
 * **ENC**: the installer stages the GUI's external node classifier
   (`scripts/enc.py`) but never wires it into `puppet.conf`; enabling it
   is a manual, deliberate step. If your control repository classifies

@@ -65,10 +65,22 @@ class openvox_gui::config {
   # under a non-UTF-8 locale dies ingesting that with "invalid byte
   # sequence in US-ASCII". On failure an ASCII-transliterated tail of the
   # log is surfaced in the agent output.
+  #
+  # A failed installer is second-guessed with a scheme-aware health
+  # probe: upstream's own final check curls plain http regardless of
+  # SSL_ENABLED, so on a TLS install it reports failure every time even
+  # though the service is up. The install counts as successful if the
+  # service answers within the grace period.
   $install_log = '/var/log/openvox-gui-install.log'
+  $scheme = $openvox_gui::ssl_enabled ? {
+    true    => 'https',
+    default => 'http',
+  }
+  $probe = "curl -skf ${scheme}://127.0.0.1:${openvox_gui::app_port}/health"
+  $verify = "(for i in {1..30}; do ${probe} >/dev/null 2>&1 && exit 0; sleep 2; done; exit 1)"
   $on_fail = "{ tail -n 40 ${install_log} | iconv -c -f UTF-8 -t ASCII//TRANSLIT; exit 1; }"
   $install_cmd = [
-    "bash install.sh -c install.conf > ${install_log} 2>&1 || ${on_fail}",
+    "bash install.sh -c install.conf > ${install_log} 2>&1 || ${verify} || ${on_fail}",
     "install -m 0600 install.conf ${stamp_conf}",
     "install -m 0644 VERSION ${stamp_version}",
   ].join(' && ')

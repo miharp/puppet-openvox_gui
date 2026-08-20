@@ -95,6 +95,11 @@ describe 'openvox_gui' do
           .with_unless(%r{cmp -s install\.conf /opt/openvox-gui/\.puppet-install\.conf})
       end
 
+      it 'verifies a failed installer with a scheme-matched health probe' do
+        expect(subject).to contain_exec('openvox_gui run installer')
+          .with_command(%r{curl -skf https://127\.0\.0\.1:4567/health})
+      end
+
       it { is_expected.to contain_service('openvox-gui').with_ensure('running').with_enable(true) }
 
       context 'with ssl_enabled => false' do
@@ -102,6 +107,11 @@ describe 'openvox_gui' do
 
         it { expect(install_conf).to include('SSL_ENABLED=false') }
         it { expect(install_conf).not_to include('SSL_CERT_PATH') }
+
+        it 'probes plain http' do
+          expect(subject).to contain_exec('openvox_gui run installer')
+            .with_command(%r{curl -skf http://127\.0\.0\.1:4567/health})
+        end
       end
 
       context 'with auth_backend => none' do

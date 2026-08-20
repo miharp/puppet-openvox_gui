@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-08-20
+
+* Verify a failed installer run with a scheme-aware health probe:
+  upstream's final check curls plain http even when the GUI serves TLS,
+  so TLS installs always reported failure despite a healthy service
+
 ## [0.1.0] - 2026-08-20
 
 Initial release.
