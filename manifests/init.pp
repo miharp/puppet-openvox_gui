@@ -39,8 +39,11 @@
 #   and to decide when an update run is needed.
 # @param admin_password
 #   Password of the initial admin user, created on first install when
-#   auth_backend is 'local'. The installer's plaintext copy of it
-#   (`<install_dir>/config/.credentials`) is removed after each run.
+#   auth_backend is 'local'. Must not contain single quotes or
+#   backslashes: the installer interpolates it into a Python literal and
+#   silently skips creating the admin user when they are present. The
+#   installer's plaintext copy of it (`<install_dir>/config/.credentials`)
+#   is removed after each run.
 # @param admin_username
 #   Name of the initial admin user.
 # @param app_port
@@ -148,6 +151,13 @@ class openvox_gui (
   Stdlib::Ensure::Service $service_ensure = 'running',
   Boolean $service_enable = true,
 ) {
+  # The installer passes the password inside a single-quoted Python
+  # literal and discards the error when that breaks, leaving no admin
+  # user and no way to log in.
+  if $auth_backend == 'local' and $admin_password.unwrap =~ /['\\]/ {
+    fail('openvox_gui::admin_password must not contain single quotes or backslashes (the upstream installer cannot pass them through to admin user creation)')
+  }
+
   contain openvox_gui::install
   contain openvox_gui::config
   contain openvox_gui::service
