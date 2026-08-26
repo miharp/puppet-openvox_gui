@@ -1,6 +1,6 @@
 {
   "name": "miharp-openvox_gui",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Mike Harp",
   "summary": "Installs and manages OpenVox GUI, a web management console for OpenVox/Puppet infrastructure",
   "license": "Apache-2.0",
