@@ -29,6 +29,7 @@ describe 'openvox_gui' do
       it { is_expected.to contain_package('nodejs') }
       it { is_expected.to contain_package('npm') }
       it { is_expected.to contain_package('diffutils') }
+      it { is_expected.to contain_package('curl') }
 
       it 'installs python3-venv only where python3 lacks venv' do
         if os_facts[:os]['family'] == 'Debian'
@@ -74,9 +75,40 @@ describe 'openvox_gui' do
                                         'SSL_ENABLED=true')
       end
 
-      it 'keeps the build, firewall, and mirror out of the installer' do
+      it 'keeps the build, firewall, mirror, and ENC out of the installer' do
         expect(install_conf).to include('BUILD_FRONTEND=false', 'INSTALL_NODEJS=false',
-                                        'CONFIGURE_FIREWALL=false', 'CONFIGURE_PKG_REPO=false')
+                                        'CONFIGURE_FIREWALL=false', 'CONFIGURE_PKG_REPO=false',
+                                        'CONFIGURE_ENC=false')
+      end
+
+      context 'with values that are special to the shell' do
+        # The installer sources the answer file, so every value must read
+        # back exactly as given: an unescaped `$$` becomes the PID and a
+        # space runs the rest of the line as a command.
+        let(:shell_values) { { password: %q(pa$$ w0rd;`'"\\#x), proxy: 'http://user:p@ss w@proxy:3128' } }
+        let(:params) do
+          super().merge(admin_password: sensitive(shell_values[:password]),
+                        extra_settings: { 'HTTPS_PROXY' => shell_values[:proxy] })
+        end
+
+        # Sources the rendered file the way the installer does and prints
+        # the values back, one per line.
+        let(:sourced) do
+          require 'open3'
+          require 'tempfile'
+          Tempfile.create('install.conf') do |f|
+            f.write(install_conf)
+            f.flush
+            Open3.capture2('bash', '-c', 'set -e; source "$1"; printf "%s\n" "$ADMIN_PASSWORD" "$HTTPS_PROXY"',
+                           '_', f.path)
+          end
+        end
+
+        it 'renders an answer file that sources back to the same values' do
+          out, status = sourced
+          expect(status).to be_success
+          expect(out.split("\n")).to eq(shell_values.values)
+        end
       end
 
       it 'defaults the TLS certificate to the node certname' do
@@ -98,6 +130,11 @@ describe 'openvox_gui' do
       it 'verifies a failed installer with a scheme-matched health probe' do
         expect(subject).to contain_exec('openvox_gui run installer')
           .with_command(%r{curl -skf https://127\.0\.0\.1:4567/health})
+      end
+
+      it 'only trusts the probe when the installer reached its own final health check' do
+        expect(subject).to contain_exec('openvox_gui run installer')
+          .with_command(%r{grep -q "Service did not start" /var/log/openvox-gui-install\.log && for })
       end
 
       it { is_expected.to contain_service('openvox-gui').with_ensure('running').with_enable(true) }

@@ -97,9 +97,9 @@
 #   { 'OPENVOX_GUI_DB_BACKEND' => 'postgresql' }.
 # @param manage_dependencies
 #   Whether to manage the packages needed to check out the source, build
-#   the frontend, and guard the installer runs. Set to false to provide
-#   git, Node.js >= 18, npm, and diffutils yourself (required on
-#   platforms whose default Node.js is older).
+#   the frontend, and guard and verify the installer runs. Set to false to
+#   provide git, Node.js >= 18, npm, diffutils, and curl yourself
+#   (required on platforms whose default Node.js is older).
 # @param dependency_packages
 #   The packages installed when manage_dependencies is true.
 # @param build_timeout
@@ -139,7 +139,7 @@ class openvox_gui (
   Boolean $configure_selinux = $facts['os']['family'] == 'RedHat',
   Hash[String[1], Variant[String, Integer, Boolean]] $extra_settings = {},
   Boolean $manage_dependencies = true,
-  Array[String[1]] $dependency_packages = ['git', 'nodejs', 'npm', 'diffutils'],
+  Array[String[1]] $dependency_packages = ['git', 'nodejs', 'npm', 'diffutils', 'curl'],
   Integer[1] $build_timeout = 600,
   Integer[1] $install_timeout = 900,
   Boolean $service_manage = true,

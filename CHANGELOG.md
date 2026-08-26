@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2026-08-26
+
+* Shell-escape the values rendered into the installer's answer file: the
+  installer sources it as shell, so a password containing `$`, spaces, or
+  quotes was silently mangled or broke the run
+* Only count a failed installer run as successful when the installer's
+  own final health check is what failed: on an update the previous
+  release keeps serving, so a run that died earlier could pass the probe
+  and be stamped as installed
+* Set `CONFIGURE_ENC=false` explicitly: from OpenVox GUI 3.12.0 the
+  installer auto-detects a co-located OpenVox Server and rewrites
+  `puppet.conf` to use the GUI's ENC
+* Install `curl`, which the installer's health check and the module's own
+  verification probe both need but nothing provided on minimal images
+
 ## [0.1.1] - 2026-08-20
 
 * Verify a failed installer run with a scheme-aware health probe:

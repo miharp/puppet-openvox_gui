@@ -298,9 +298,9 @@ Default value: `{}`
 Data type: `Boolean`
 
 Whether to manage the packages needed to check out the source, build
-the frontend, and guard the installer runs. Set to false to provide
-git, Node.js >= 18, npm, and diffutils yourself (required on
-platforms whose default Node.js is older).
+the frontend, and guard and verify the installer runs. Set to false to
+provide git, Node.js >= 18, npm, diffutils, and curl yourself
+(required on platforms whose default Node.js is older).
 
 Default value: `true`
 
@@ -310,7 +310,7 @@ Data type: `Array[String[1]]`
 
 The packages installed when manage_dependencies is true.
 
-Default value: `['git', 'nodejs', 'npm', 'diffutils']`
+Default value: `['git', 'nodejs', 'npm', 'diffutils', 'curl']`
 
 ##### <a name="-openvox_gui--build_timeout"></a>`build_timeout`
 

@@ -46,7 +46,7 @@ unattended and repeatably:
 * The `openvox-gui` systemd service, running as the `puppet` user by
   default, and that user and group themselves (presence only; disable
   with `manage_service_user => false`).
-* The `git`, `nodejs`, `npm`, and `diffutils` packages, plus
+* The `git`, `nodejs`, `npm`, `diffutils`, and `curl` packages, plus
   `python3-venv` on the Debian family (disable with
   `manage_dependencies => false`).
 * Via the upstream installer: the service user's sudoers rules in
@@ -158,13 +158,16 @@ with puppet-strings (`bundle exec rake strings:generate:reference`).
   idempotency guard, rather than managing every file as a Puppet
   resource. The installer's own final health check probes plain http
   even when the GUI serves TLS (so it always reports failure on TLS
-  installs); the module re-verifies with the correct scheme and counts
-  the install as successful when the service answers. Don't delete the
+  installs); when that final check is what failed, the module re-verifies
+  with the correct scheme and counts the install as successful if the
+  service answers. Don't delete the
   `.puppet-install.conf` / `.puppet-install-version` stamp files in the
   install directory — they are the "already installed" markers.
 * **ENC**: the installer stages the GUI's external node classifier
-  (`scripts/enc.py`) but never wires it into `puppet.conf`; enabling it
-  is a manual, deliberate step. If your control repository classifies
+  (`scripts/enc.py`) but the module keeps it out of `puppet.conf`
+  (`CONFIGURE_ENC=false`; from OpenVox GUI 3.12.0 the installer's default
+  would otherwise auto-wire it on a co-located OpenVox Server). Enabling
+  it is a manual, deliberate step. If your control repository classifies
   nodes with roles and profiles, leave it off.
 * **Database**: SQLite (the upstream default) is assumed. The
   PostgreSQL/clustered backend can be selected via `extra_settings` but

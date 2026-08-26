@@ -6,4 +6,5 @@ openvox_gui::dependency_packages:
   - 'nodejs'
   - 'npm'
   - 'diffutils'
+  - 'curl'
   - 'python3-venv'

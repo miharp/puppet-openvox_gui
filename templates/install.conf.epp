@@ -19,10 +19,12 @@
 | -%>
 # This file is managed by Puppet.
 # Unattended installation configuration for openvox-gui (install.sh -c).
+# The installer sources this file as shell, so free-form values are
+# shell-escaped; they read back exactly as given in Puppet.
 
-INSTALL_DIR=<%= $install_dir %>
+INSTALL_DIR=<%= stdlib::shell_escape($install_dir) %>
 APP_PORT=<%= $app_port %>
-APP_HOST=<%= $app_host %>
+APP_HOST=<%= stdlib::shell_escape($app_host) %>
 
 PUPPET_SERVER_HOST=<%= $puppet_server_host %>
 PUPPET_SERVER_PORT=<%= $puppet_server_port %>
@@ -31,32 +33,35 @@ PUPPETDB_PORT=<%= $puppetdb_port %>
 
 SSL_ENABLED=<%= $ssl_enabled %>
 <% if $ssl_enabled { -%>
-SSL_CERT_PATH=<%= $ssl_cert %>
-SSL_KEY_PATH=<%= $ssl_key %>
+SSL_CERT_PATH=<%= stdlib::shell_escape($ssl_cert) %>
+SSL_KEY_PATH=<%= stdlib::shell_escape($ssl_key) %>
 <% } -%>
 
 AUTH_BACKEND=<%= $auth_backend %>
 <% if $auth_backend == 'local' { -%>
-ADMIN_USERNAME=<%= $admin_username %>
-ADMIN_PASSWORD=<%= $admin_password %>
+ADMIN_USERNAME=<%= stdlib::shell_escape($admin_username) %>
+ADMIN_PASSWORD=<%= stdlib::shell_escape($admin_password) %>
 <% } -%>
 
-SERVICE_USER=<%= $service_user %>
-SERVICE_GROUP=<%= $service_group %>
+SERVICE_USER=<%= stdlib::shell_escape($service_user) %>
+SERVICE_GROUP=<%= stdlib::shell_escape($service_group) %>
 UVICORN_WORKERS=<%= $uvicorn_workers %>
 
 # The frontend is pre-built by Puppet and Node.js is provided outside the
 # installer (see openvox_gui::install). Firewall rules, the agent package
-# mirror, and ENC wiring are managed outside this module.
+# mirror, and ENC wiring are managed outside this module; CONFIGURE_ENC is
+# set explicitly because from OpenVox GUI 3.12.0 its default auto-detects a
+# co-located OpenVox Server and rewrites puppet.conf to use the GUI's ENC.
 BUILD_FRONTEND=false
 INSTALL_NODEJS=false
 CONFIGURE_FIREWALL=false
 CONFIGURE_PKG_REPO=false
+CONFIGURE_ENC=false
 CONFIGURE_SELINUX=<%= $configure_selinux %>
 <% unless $extra_settings.empty { -%>
 
 # Extra settings (openvox_gui::extra_settings); last assignment wins.
 <% $extra_settings.each |$key, $value| { -%>
-<%= $key %>=<%= $value %>
+<%= $key %>=<%= stdlib::shell_escape($value) %>
 <% } -%>
 <% } -%>
