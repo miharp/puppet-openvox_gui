@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file.
   verification probe both need but nothing provided on minimal images
 * Remove the installer's plaintext copy of the admin credentials
   (`config/.credentials`, owned by the service user) after each run
+* Reject an `admin_password` containing single quotes or backslashes at
+  compile time: the installer cannot pass them through to admin user
+  creation and silently leaves no admin user
+* Allow puppetlabs/stdlib 10
 
 ## [0.1.1] - 2026-08-20
 

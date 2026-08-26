@@ -85,7 +85,9 @@ describe 'openvox_gui' do
         # The installer sources the answer file, so every value must read
         # back exactly as given: an unescaped `$$` becomes the PID and a
         # space runs the rest of the line as a command.
-        let(:shell_values) { { password: %q(pa$$ w0rd;`'"\\#x), proxy: 'http://user:p@ss w@proxy:3128' } }
+        # Single quotes and backslashes are rejected in the password (see
+        # init.pp), so they are exercised through an extra setting.
+        let(:shell_values) { { password: 'pa$$ w0rd;`"#x', proxy: "http://user:p@ss w'd\\\\@proxy:3128" } }
         let(:params) do
           super().merge(admin_password: sensitive(shell_values[:password]),
                         extra_settings: { 'HTTPS_PROXY' => shell_values[:proxy] })
@@ -162,6 +164,23 @@ describe 'openvox_gui' do
 
         it { expect(install_conf).to include('AUTH_BACKEND=none') }
         it { expect(install_conf).not_to include('ADMIN_PASSWORD') }
+
+        it 'does not validate the unused admin password' do
+          params[:admin_password] = sensitive("it's unused")
+          expect(subject).to compile.with_all_deps
+        end
+      end
+
+      context 'with a password the installer cannot pass to admin creation' do
+        let(:params) { super().merge(admin_password: sensitive("it's a secret")) }
+
+        it 'fails at compile time instead of silently leaving no admin user' do
+          expect(subject).to compile.and_raise_error(/admin_password must not contain single quotes or backslashes/)
+        end
+
+        it 'does not leak the password into the error' do
+          expect(subject).to compile.and_raise_error(/\A(?!.*a secret).*\z/m)
+        end
       end
 
       context 'with extra_settings' do
