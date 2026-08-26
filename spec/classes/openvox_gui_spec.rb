@@ -132,6 +132,12 @@ describe 'openvox_gui' do
           .with_command(%r{curl -skf https://127\.0\.0\.1:4567/health})
       end
 
+      it 'removes the plaintext credentials file the installer leaves behind' do
+        expect(subject).to contain_file('/opt/openvox-gui/config/.credentials')
+          .with_ensure('absent')
+          .that_requires('Exec[openvox_gui run installer]')
+      end
+
       it 'only trusts the probe when the installer reached its own final health check' do
         expect(subject).to contain_exec('openvox_gui run installer')
           .with_command(%r{grep -q "Service did not start" /var/log/openvox-gui-install\.log && for })

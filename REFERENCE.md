@@ -110,7 +110,8 @@ and to decide when an update run is needed.
 Data type: `Sensitive[String[1]]`
 
 Password of the initial admin user, created on first install when
-auth_backend is 'local'.
+auth_backend is 'local'. The installer's plaintext copy of it
+(`<install_dir>/config/.credentials`) is removed after each run.
 
 ##### <a name="-openvox_gui--admin_username"></a>`admin_username`
 

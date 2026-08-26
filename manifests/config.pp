@@ -99,4 +99,14 @@ class openvox_gui::config {
     timeout     => $openvox_gui::install_timeout,
     require     => File["${src_dir}/install.conf"],
   }
+
+  # Every installer run with local auth writes the admin username and
+  # password in plaintext to config/.credentials, owned by the service
+  # user, and tells the operator to delete it after noting the password.
+  # Under Puppet the password is already known (and the GUI process has
+  # no business reading it), so the copy is removed after each run.
+  file { "${install_dir}/config/.credentials":
+    ensure  => absent,
+    require => Exec['openvox_gui run installer'],
+  }
 }

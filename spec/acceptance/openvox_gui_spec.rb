@@ -25,6 +25,10 @@ describe 'openvox_gui' do
     it { is_expected.to be_mode 600 }
   end
 
+  describe file('/opt/openvox-gui/config/.credentials') do
+    it { is_expected.not_to exist }
+  end
+
   describe service('openvox-gui') do
     it { is_expected.to be_running }
     it { is_expected.to be_enabled }
