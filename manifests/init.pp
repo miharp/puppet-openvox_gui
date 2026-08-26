@@ -39,7 +39,8 @@
 #   and to decide when an update run is needed.
 # @param admin_password
 #   Password of the initial admin user, created on first install when
-#   auth_backend is 'local'.
+#   auth_backend is 'local'. The installer's plaintext copy of it
+#   (`<install_dir>/config/.credentials`) is removed after each run.
 # @param admin_username
 #   Name of the initial admin user.
 # @param app_port

@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
   `puppet.conf` to use the GUI's ENC
 * Install `curl`, which the installer's health check and the module's own
   verification probe both need but nothing provided on minimal images
+* Remove the installer's plaintext copy of the admin credentials
+  (`config/.credentials`, owned by the service user) after each run
 
 ## [0.1.1] - 2026-08-20
 

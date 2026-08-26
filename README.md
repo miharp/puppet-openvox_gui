@@ -41,7 +41,9 @@ unattended and repeatably:
 * The source checkout (`/opt/openvox-gui-src`) and the application
   (`/opt/openvox-gui`), including a Python virtualenv, the `ovox` CLI,
   and the rendered `install.conf` answer file (root-only, contains the
-  admin password). Installer runs log to
+  admin password). The installer's own plaintext copy of the admin
+  credentials (`config/.credentials`, owned by the service user) is
+  removed after each run. Installer runs log to
   `/var/log/openvox-gui-install.log`.
 * The `openvox-gui` systemd service, running as the `puppet` user by
   default, and that user and group themselves (presence only; disable
