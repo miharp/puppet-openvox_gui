@@ -14,6 +14,11 @@ describe 'openvox_gui' do
         admin_password => Sensitive('acceptance-test-secret'),
         ssl_enabled    => false,
       }
+
+      # The console orchestrating itself: the same host is also a target.
+      class { 'openvox_gui::bolt_target':
+        authorized_keys => ['ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAcceptanceTestKeyOnlyNotReal openvox-gui-bolt'],
+      }
     PUPPET
   end
 
@@ -44,5 +49,23 @@ describe 'openvox_gui' do
 
   describe port(4567) do
     it { is_expected.to be_listening }
+  end
+
+  describe user('bolt') do
+    it { is_expected.to exist }
+    it { is_expected.to belong_to_primary_group 'bolt' }
+    it { is_expected.to have_home_directory '/home/bolt' }
+  end
+
+  describe file('/home/bolt/.ssh/authorized_keys') do
+    it { is_expected.to be_file }
+    it { is_expected.to be_owned_by 'bolt' }
+    it { is_expected.to be_mode 600 }
+    its(:content) { is_expected.to match(/^ssh-ed25519 .* openvox-gui-bolt$/) }
+  end
+
+  describe file('/home/bolt/.bolt/tmp') do
+    it { is_expected.to be_directory }
+    it { is_expected.to be_mode 700 }
   end
 end

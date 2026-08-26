@@ -48,9 +48,13 @@ unattended and repeatably:
 * The `openvox-gui` systemd service, running as the `puppet` user by
   default, and that user and group themselves (presence only; disable
   with `manage_service_user => false`).
-* The `git`, `nodejs`, `npm`, `diffutils`, and `curl` packages, plus
-  `python3-venv` on the Debian family (disable with
+* The `git`, `nodejs`, `npm`, `diffutils`, `curl`, and OpenSSH client
+  packages, plus `python3-venv` on the Debian family (disable with
   `manage_dependencies => false`).
+* Optionally, on any node (`openvox_gui::bolt_target`): the `bolt` user
+  the GUI's orchestration logs in as, its `~/.bolt/tmp` upload directory,
+  and its authorized keys. Not its sudo rules — see
+  [Orchestration targets](#orchestration-targets).
 * Via the upstream installer: the service user's sudoers rules in
   `/etc/sudoers.d/openvox-gui-users`, and SELinux booleans/port contexts
   on the RedHat family.
@@ -122,6 +126,43 @@ class { 'openvox_gui':
   },
 }
 ```
+
+### Orchestration targets
+
+The GUI's Orchestration, file transfer, and code-deploy features run
+OpenBolt from the console as a dedicated `bolt` user over SSH, using the
+key the installer generates at `/etc/puppetlabs/bolt/id_bolt`
+(`configure_bolt`, on by default from OpenVox GUI 3.12.0). Every target
+needs the matching user, and `openvox_gui::bolt_target` provides it:
+
+```puppet
+class { 'openvox_gui::bolt_target':
+  authorized_keys => ['ssh-ed25519 AAAA... openvox-gui-bolt'],
+}
+```
+
+The console exposes its public key as the `openvox_gui_bolt_pubkey`
+fact, so a control repository with PuppetDB can collect it instead of
+pasting it — and picks up every console automatically:
+
+```puppet
+$keys = puppetdb_query('facts[value] { name = "openvox_gui_bolt_pubkey" }').map |$f| { $f['value'] }
+
+class { 'openvox_gui::bolt_target':
+  authorized_keys => $keys,
+}
+```
+
+Two things stay with you. **Sudo**: "Run privileged" prefixes commands
+with `sudo`, and file transfers run as root, so the bolt user needs
+passwordless sudo on each target — the module leaves that to whatever
+already manages sudoers (e.g. `sudo::conf { 'bolt': content => 'bolt
+ALL=(ALL) NOPASSWD: ALL' }` with saz/sudo), since it is a fleet-wide
+root grant that should be an explicit decision. **The console's
+`inventory.yaml`**: targets are resolved from OpenVoxDB, so it only
+needs SSH settings; upstream's `bolt-plugin/inventory.yaml.example`
+(user `bolt`, the key above, `tmpdir: /home/bolt/.bolt/tmp`) is the
+template.
 
 ### Opening the firewall
 

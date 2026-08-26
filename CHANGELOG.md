@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-08-26
+
+* New `openvox_gui::bolt_target` class: prepares a node as an
+  orchestration target the way upstream expects (bolt user, `~/.bolt/tmp`
+  upload directory, authorized keys); sudo is left to the operator
+* New `openvox_gui_bolt_pubkey` fact exposing the console's orchestration
+  public key so targets can collect it (e.g. with `puppetdb_query`)
+* New `configure_bolt` parameter for the installer's `CONFIGURE_BOLT`,
+  previously unset and therefore silently on
+* Manage the OpenSSH client package: the 3.12.0 installer's Bolt step
+  runs `ssh-keygen` unguarded
+
 ## [0.1.2] - 2026-08-26
 
 * Shell-escape the values rendered into the installer's answer file: the
