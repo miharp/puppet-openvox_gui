@@ -94,6 +94,13 @@
 # @param configure_selinux
 #   Whether the installer sets SELinux booleans and port contexts for the
 #   GUI. Defaults to true on the RedHat family.
+# @param configure_bolt
+#   Whether the installer sets up OpenBolt on the console for the GUI's
+#   orchestration features. From OpenVox GUI 3.12.0 this creates a 'bolt'
+#   service user, installs OpenBolt if it is missing, and generates the
+#   SSH key (/etc/puppetlabs/bolt/id_bolt) the console uses to reach
+#   targets; see openvox_gui::bolt_target for the target side. Upstream's
+#   default.
 # @param extra_settings
 #   Additional KEY=value pairs appended to the installer's answer file,
 #   overriding anything this module set. Use for installer settings
@@ -102,8 +109,8 @@
 # @param manage_dependencies
 #   Whether to manage the packages needed to check out the source, build
 #   the frontend, and guard and verify the installer runs. Set to false to
-#   provide git, Node.js >= 18, npm, diffutils, and curl yourself
-#   (required on platforms whose default Node.js is older).
+#   provide git, Node.js >= 18, npm, diffutils, curl, and an SSH client
+#   yourself (required on platforms whose default Node.js is older).
 # @param dependency_packages
 #   The packages installed when manage_dependencies is true.
 # @param build_timeout
@@ -141,9 +148,10 @@ class openvox_gui (
   Boolean $manage_service_user = true,
   Integer[1] $uvicorn_workers = 2,
   Boolean $configure_selinux = $facts['os']['family'] == 'RedHat',
+  Boolean $configure_bolt = true,
   Hash[String[1], Variant[String, Integer, Boolean]] $extra_settings = {},
   Boolean $manage_dependencies = true,
-  Array[String[1]] $dependency_packages = ['git', 'nodejs', 'npm', 'diffutils', 'curl'],
+  Array[String[1]] $dependency_packages = ['git', 'nodejs', 'npm', 'diffutils', 'curl', 'openssh-clients'],
   Integer[1] $build_timeout = 600,
   Integer[1] $install_timeout = 900,
   Boolean $service_manage = true,

@@ -31,6 +31,11 @@ describe 'openvox_gui' do
       it { is_expected.to contain_package('diffutils') }
       it { is_expected.to contain_package('curl') }
 
+      it 'installs the SSH client the installer needs to generate its orchestration key' do
+        expected = (os_facts[:os]['family'] == 'Debian') ? 'openssh-client' : 'openssh-clients'
+        expect(subject).to contain_package(expected)
+      end
+
       it 'installs python3-venv only where python3 lacks venv' do
         if os_facts[:os]['family'] == 'Debian'
           expect(subject).to contain_package('python3-venv')
@@ -121,6 +126,16 @@ describe 'openvox_gui' do
       it 'only configures SELinux on the RedHat family' do
         expected = (os_facts[:os]['family'] == 'RedHat') ? 'true' : 'false'
         expect(install_conf).to include("CONFIGURE_SELINUX=#{expected}")
+      end
+
+      it 'sets the installer Bolt step explicitly, on by default like upstream' do
+        expect(install_conf).to include('CONFIGURE_BOLT=true')
+      end
+
+      context 'with configure_bolt => false' do
+        let(:params) { super().merge(configure_bolt: false) }
+
+        it { expect(install_conf).to include('CONFIGURE_BOLT=false') }
       end
 
       it do

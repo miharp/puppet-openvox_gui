@@ -47,6 +47,7 @@ class openvox_gui::config {
       'service_group'      => $openvox_gui::service_group,
       'uvicorn_workers'    => $openvox_gui::uvicorn_workers,
       'configure_selinux'  => $openvox_gui::configure_selinux,
+      'configure_bolt'     => $openvox_gui::configure_bolt,
       'extra_settings'     => $openvox_gui::extra_settings,
     })),
   }

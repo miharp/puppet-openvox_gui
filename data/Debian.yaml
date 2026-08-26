@@ -7,4 +7,5 @@ openvox_gui::dependency_packages:
   - 'npm'
   - 'diffutils'
   - 'curl'
+  - 'openssh-client'
   - 'python3-venv'

@@ -15,6 +15,7 @@
       String[1] $service_group,
       Integer[1] $uvicorn_workers,
       Boolean $configure_selinux,
+      Boolean $configure_bolt,
       Hash[String[1], Variant[String, Integer, Boolean]] $extra_settings,
 | -%>
 # This file is managed by Puppet.
@@ -58,6 +59,7 @@ CONFIGURE_FIREWALL=false
 CONFIGURE_PKG_REPO=false
 CONFIGURE_ENC=false
 CONFIGURE_SELINUX=<%= $configure_selinux %>
+CONFIGURE_BOLT=<%= $configure_bolt %>
 <% unless $extra_settings.empty { -%>
 
 # Extra settings (openvox_gui::extra_settings); last assignment wins.

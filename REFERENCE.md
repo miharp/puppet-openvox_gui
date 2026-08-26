@@ -9,6 +9,7 @@
 #### Public Classes
 
 * [`openvox_gui`](#openvox_gui): Installs and manages OpenVox GUI
+* [`openvox_gui::bolt_target`](#openvox_gui--bolt_target): Prepares a node as an OpenVox GUI orchestration target
 
 #### Private Classes
 
@@ -87,6 +88,7 @@ The following parameters are available in the `openvox_gui` class:
 * [`manage_service_user`](#-openvox_gui--manage_service_user)
 * [`uvicorn_workers`](#-openvox_gui--uvicorn_workers)
 * [`configure_selinux`](#-openvox_gui--configure_selinux)
+* [`configure_bolt`](#-openvox_gui--configure_bolt)
 * [`extra_settings`](#-openvox_gui--extra_settings)
 * [`manage_dependencies`](#-openvox_gui--manage_dependencies)
 * [`dependency_packages`](#-openvox_gui--dependency_packages)
@@ -286,6 +288,19 @@ GUI. Defaults to true on the RedHat family.
 
 Default value: `$facts['os']['family'] == 'RedHat'`
 
+##### <a name="-openvox_gui--configure_bolt"></a>`configure_bolt`
+
+Data type: `Boolean`
+
+Whether the installer sets up OpenBolt on the console for the GUI's
+orchestration features. From OpenVox GUI 3.12.0 this creates a 'bolt'
+service user, installs OpenBolt if it is missing, and generates the
+SSH key (/etc/puppetlabs/bolt/id_bolt) the console uses to reach
+targets; see openvox_gui::bolt_target for the target side. Upstream's
+default.
+
+Default value: `true`
+
 ##### <a name="-openvox_gui--extra_settings"></a>`extra_settings`
 
 Data type: `Hash[String[1], Variant[String, Integer, Boolean]]`
@@ -303,8 +318,8 @@ Data type: `Boolean`
 
 Whether to manage the packages needed to check out the source, build
 the frontend, and guard and verify the installer runs. Set to false to
-provide git, Node.js >= 18, npm, diffutils, and curl yourself
-(required on platforms whose default Node.js is older).
+provide git, Node.js >= 18, npm, diffutils, curl, and an SSH client
+yourself (required on platforms whose default Node.js is older).
 
 Default value: `true`
 
@@ -314,7 +329,7 @@ Data type: `Array[String[1]]`
 
 The packages installed when manage_dependencies is true.
 
-Default value: `['git', 'nodejs', 'npm', 'diffutils', 'curl']`
+Default value: `['git', 'nodejs', 'npm', 'diffutils', 'curl', 'openssh-clients']`
 
 ##### <a name="-openvox_gui--build_timeout"></a>`build_timeout`
 
@@ -361,6 +376,102 @@ Default value: `'running'`
 Data type: `Boolean`
 
 Whether the service starts on boot.
+
+Default value: `true`
+
+### <a name="openvox_gui--bolt_target"></a>`openvox_gui::bolt_target`
+
+The GUI runs OpenBolt from the console as a dedicated `bolt` user over
+SSH, authenticating with the key its installer generates at
+`/etc/puppetlabs/bolt/id_bolt`, and expects the same user on every
+target: scripts are uploaded to `~/.bolt/tmp` (because `/tmp` is often
+mounted noexec) and privileged runs escalate with `sudo`. This class
+creates that user, its directories, and its authorized keys. Apply it to
+every node the GUI should orchestrate — the console included, if it is
+a target itself.
+
+Sudo is deliberately not managed here. Granting the bolt user
+passwordless root on every node is an operator decision that belongs
+with whatever already manages sudoers (e.g. saz/sudo, whose purge would
+otherwise remove a hand-written file). Without it, GUI runs still work
+unprivileged; "Run privileged" and file transfers do not.
+
+#### Examples
+
+##### Authorize the console's key on an agent
+
+```puppet
+class { 'openvox_gui::bolt_target':
+  authorized_keys => ['ssh-ed25519 AAAA... openvox-gui-bolt'],
+}
+```
+
+##### Collect the console's key from PuppetDB instead of copying it
+
+```puppet
+$keys = puppetdb_query('facts[value] { name = "openvox_gui_bolt_pubkey" }').map |$f| { $f['value'] }
+class { 'openvox_gui::bolt_target':
+  authorized_keys => $keys,
+}
+```
+
+#### Parameters
+
+The following parameters are available in the `openvox_gui::bolt_target` class:
+
+* [`authorized_keys`](#-openvox_gui--bolt_target--authorized_keys)
+* [`user`](#-openvox_gui--bolt_target--user)
+* [`group`](#-openvox_gui--bolt_target--group)
+* [`home`](#-openvox_gui--bolt_target--home)
+* [`shell`](#-openvox_gui--bolt_target--shell)
+* [`manage_user`](#-openvox_gui--bolt_target--manage_user)
+
+##### <a name="-openvox_gui--bolt_target--authorized_keys"></a>`authorized_keys`
+
+Data type: `Array[String[1], 1]`
+
+Public keys, as complete authorized_keys lines, allowed to log in as
+the bolt user. Each console exposes its own key through the
+`openvox_gui_bolt_pubkey` fact.
+
+##### <a name="-openvox_gui--bolt_target--user"></a>`user`
+
+Data type: `String[1]`
+
+Name of the orchestration user. Upstream expects 'bolt'.
+
+Default value: `'bolt'`
+
+##### <a name="-openvox_gui--bolt_target--group"></a>`group`
+
+Data type: `String[1]`
+
+Primary group of the orchestration user.
+
+Default value: `'bolt'`
+
+##### <a name="-openvox_gui--bolt_target--home"></a>`home`
+
+Data type: `Stdlib::Absolutepath`
+
+Home directory; Bolt's upload directory lives under it.
+
+Default value: `'/home/bolt'`
+
+##### <a name="-openvox_gui--bolt_target--shell"></a>`shell`
+
+Data type: `Stdlib::Absolutepath`
+
+Login shell. Bolt needs a real shell on the target.
+
+Default value: `'/bin/bash'`
+
+##### <a name="-openvox_gui--bolt_target--manage_user"></a>`manage_user`
+
+Data type: `Boolean`
+
+Whether to create the user and group. Disable if another module
+manages them.
 
 Default value: `true`
 
