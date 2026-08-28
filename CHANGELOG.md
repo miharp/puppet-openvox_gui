@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-08-28
+
+* New `openvox_gui::enc` class: wires a catalog compiler (or an
+  all-in-one server) to the GUI's external node classifier the way
+  upstream's `scripts/bootstrap-compiler-enc.sh` does — the `enc.py`
+  script, an environment file naming the console(s), a puppetserver
+  drop-in that loads it, and `node_terminus` / `external_nodes` in
+  `puppet.conf` — as managed resources, with `ensure => absent` to take
+  it out again
+* The module ships its own copy of upstream's `enc.py` (OpenVox GUI
+  3.12.1-dev.10, commit 2d881c9), so compilers need no access to a
+  console's install tree; `enc_source` overrides it
+* New dependency on puppetlabs/inifile
+
 ## [0.2.0] - 2026-08-26
 
 * New `openvox_gui::bolt_target` class: prepares a node as an

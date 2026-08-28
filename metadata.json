@@ -1,6 +1,6 @@
 {
   "name": "miharp-openvox_gui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Mike Harp",
   "summary": "Installs and manages OpenVox GUI, a web management console for OpenVox/Puppet infrastructure",
   "license": "Apache-2.0",
@@ -15,6 +15,10 @@
     {
       "name": "puppetlabs/vcsrepo",
       "version_requirement": ">= 6.0.0 < 8.0.0"
+    },
+    {
+      "name": "puppetlabs/inifile",
+      "version_requirement": ">= 6.0.0 < 7.0.0"
     }
   ],
   "operatingsystem_support": [

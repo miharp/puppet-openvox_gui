@@ -10,6 +10,7 @@
 
 * [`openvox_gui`](#openvox_gui): Installs and manages OpenVox GUI
 * [`openvox_gui::bolt_target`](#openvox_gui--bolt_target): Prepares a node as an OpenVox GUI orchestration target
+* [`openvox_gui::enc`](#openvox_gui--enc): Wires a catalog compiler to the OpenVox GUI's node classifier
 
 #### Private Classes
 
@@ -34,9 +35,11 @@ answer file, and runs `install.sh -c` non-interactively. Changing
 `version` or any configuration parameter re-runs the installer, which is
 the upstream-supported update flow.
 
-The GUI's optional firewall, agent package mirror, and ENC integrations
-are left off; manage the firewall port and puppet.conf wiring outside
-this module. The installer writes sudoers rules for the service user to
+The GUI's optional firewall and agent package mirror are left off;
+manage the firewall port outside this module. The installer's ENC
+wiring is left off too: `openvox_gui::enc` provides it as resources,
+for compilers and all-in-one servers alike. The installer writes
+sudoers rules for the service user to
 `/etc/sudoers.d/openvox-gui-users`; if `saz/sudo` manages that host with
 `purge => true`, set `sudo::purge_ignore: 'openvox-gui-users'`.
 
@@ -474,4 +477,184 @@ Whether to create the user and group. Disable if another module
 manages them.
 
 Default value: `true`
+
+### <a name="openvox_gui--enc"></a>`openvox_gui::enc`
+
+Compilers, not consoles, classify nodes: puppetserver runs an
+`external_nodes` script at compile time. OpenVox GUI ships that script
+(`scripts/enc.py`); it asks a console's API for the node's environment,
+classes and parameters, and answers with an empty classification when
+no console responds, so a console outage slows compiles (each waits out
+the request timeout) rather than failing them. This class installs the
+script, hands it the console URL(s) through an environment file that
+puppetserver's unit loads, and points `puppet.conf` at it — the steps
+of upstream's `scripts/bootstrap-compiler-enc.sh`, as managed resources.
+
+The script is this module's copy of upstream's (from OpenVox GUI
+3.12.1-dev.10); `enc_source` can point at another, such as the one
+under a console's install directory.
+
+Classes the GUI assigns are merged with whatever `site.pp` declares,
+so an existing roles-and-profiles classification keeps working when
+this is enabled; the GUI adds to it.
+
+#### Examples
+
+##### A compiler classified by one console
+
+```puppet
+class { 'openvox_gui::enc':
+  api_base => ['https://console.example.com:4567'],
+}
+```
+
+##### Two consoles sharing a database, tried in order
+
+```puppet
+class { 'openvox_gui::enc':
+  api_base => ['https://console-a.example.com:4567', 'https://console-b.example.com:4567'],
+}
+```
+
+#### Parameters
+
+The following parameters are available in the `openvox_gui::enc` class:
+
+* [`api_base`](#-openvox_gui--enc--api_base)
+* [`ensure`](#-openvox_gui--enc--ensure)
+* [`enc_path`](#-openvox_gui--enc--enc_path)
+* [`enc_source`](#-openvox_gui--enc--enc_source)
+* [`sysconfig`](#-openvox_gui--enc--sysconfig)
+* [`ca_file`](#-openvox_gui--enc--ca_file)
+* [`tls_verify`](#-openvox_gui--enc--tls_verify)
+* [`manage_puppet_conf`](#-openvox_gui--enc--manage_puppet_conf)
+* [`puppet_conf`](#-openvox_gui--enc--puppet_conf)
+* [`service`](#-openvox_gui--enc--service)
+* [`restart_service`](#-openvox_gui--enc--restart_service)
+* [`manage_pyyaml`](#-openvox_gui--enc--manage_pyyaml)
+* [`pyyaml_package`](#-openvox_gui--enc--pyyaml_package)
+
+##### <a name="-openvox_gui--enc--api_base"></a>`api_base`
+
+Data type: `Array[Stdlib::HTTPUrl, 1]`
+
+Console URL(s) the classifier asks, in order; the first to answer
+wins. Two consoles are a failover pair only when they share the GUI's
+database — a console with an empty classifier answers, too.
+
+##### <a name="-openvox_gui--enc--ensure"></a>`ensure`
+
+Data type: `Enum['present', 'absent']`
+
+'absent' removes the wiring: the `puppet.conf` settings, the
+environment file, the drop-in and the script.
+
+Default value: `'present'`
+
+##### <a name="-openvox_gui--enc--enc_path"></a>`enc_path`
+
+Data type: `Stdlib::Absolutepath`
+
+Where the classifier script is installed. Upstream's convention.
+
+Default value: `'/usr/local/bin/enc.py'`
+
+##### <a name="-openvox_gui--enc--enc_source"></a>`enc_source`
+
+Data type: `String[1]`
+
+Puppet file source of the classifier script.
+
+Default value: `'puppet:///modules/openvox_gui/enc.py'`
+
+##### <a name="-openvox_gui--enc--sysconfig"></a>`sysconfig`
+
+Data type: `Stdlib::Absolutepath`
+
+Environment file the puppetserver unit loads the console URL(s) from.
+
+Default value:
+
+```puppet
+$facts['os']['family'] ? {
+    'Debian' => '/etc/default/openvox-enc',
+    default  => '/etc/sysconfig/openvox-enc'
+```
+
+##### <a name="-openvox_gui--enc--ca_file"></a>`ca_file`
+
+Data type: `Optional[Stdlib::Absolutepath]`
+
+CA bundle the script verifies the console's certificate against.
+Unset, the script uses the Puppet agent's CA certificate, which is
+right when the GUI serves a certificate from the Puppet CA (the
+installer's default).
+
+Default value: `undef`
+
+##### <a name="-openvox_gui--enc--tls_verify"></a>`tls_verify`
+
+Data type: `Boolean`
+
+Whether the script verifies the console's certificate at all.
+
+Default value: `true`
+
+##### <a name="-openvox_gui--enc--manage_puppet_conf"></a>`manage_puppet_conf`
+
+Data type: `Boolean`
+
+Set `node_terminus` and `external_nodes` in `puppet.conf`'s [server]
+section.
+
+Default value: `true`
+
+##### <a name="-openvox_gui--enc--puppet_conf"></a>`puppet_conf`
+
+Data type: `Stdlib::Absolutepath`
+
+Path of `puppet.conf`.
+
+Default value: `'/etc/puppetlabs/puppet/puppet.conf'`
+
+##### <a name="-openvox_gui--enc--service"></a>`service`
+
+Data type: `String[1]`
+
+Name of the puppetserver unit: the drop-in goes under its `.d`
+directory, and it is restarted when the wiring changes.
+
+Default value: `'puppetserver'`
+
+##### <a name="-openvox_gui--enc--restart_service"></a>`restart_service`
+
+Data type: `Boolean`
+
+Whether to notify `Service[$service]`, which must then be declared
+elsewhere in the catalog. Disable to handle restarts yourself.
+
+Default value: `true`
+
+##### <a name="-openvox_gui--enc--manage_pyyaml"></a>`manage_pyyaml`
+
+Data type: `Boolean`
+
+Install the PyYAML package the script imports. Left installed on
+`ensure => absent`.
+
+Default value: `true`
+
+##### <a name="-openvox_gui--enc--pyyaml_package"></a>`pyyaml_package`
+
+Data type: `String[1]`
+
+Name of that package.
+
+Default value:
+
+```puppet
+$facts['os']['family'] ? {
+    'Debian' => 'python3-yaml',
+    default  => 'python3-pyyaml'
+```
 

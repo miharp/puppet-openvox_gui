@@ -55,13 +55,18 @@ unattended and repeatably:
   the GUI's orchestration logs in as, its `~/.bolt/tmp` upload directory,
   and its authorized keys. Not its sudo rules — see
   [Orchestration targets](#orchestration-targets).
+* Optionally, on catalog compilers (`openvox_gui::enc`): the GUI's
+  classifier script at `/usr/local/bin/enc.py`, the environment file
+  that names the console(s), a puppetserver drop-in that loads it, and
+  `node_terminus` / `external_nodes` in `puppet.conf`. See
+  [Classifying nodes from the GUI](#classifying-nodes-from-the-gui).
 * Via the upstream installer: the service user's sudoers rules in
   `/etc/sudoers.d/openvox-gui-users`, and SELinux booleans/port contexts
   on the RedHat family.
 
-The module deliberately does **not** manage firewall rules, the GUI's
-optional agent package mirror, or the ENC wiring in `puppet.conf` — those
-stay under your control (see [Limitations](#limitations)).
+The module deliberately does **not** manage firewall rules or the GUI's
+optional agent package mirror — those stay under your control (see
+[Limitations](#limitations)).
 
 ### Setup requirements
 
@@ -164,6 +169,39 @@ needs SSH settings; upstream's `bolt-plugin/inventory.yaml.example`
 (user `bolt`, the key above, `tmpdir: /home/bolt/.bolt/tmp`) is the
 template.
 
+### Classifying nodes from the GUI
+
+The GUI's Classification pages only reach catalogs if the compiler asks
+for them: puppetserver runs the GUI's `enc.py` as its `external_nodes`
+script at compile time, and that script queries a console's API. On an
+all-in-one install the upstream installer can wire this itself
+(`CONFIGURE_ENC`); this module keeps that off and provides the wiring as
+resources instead, for compilers and all-in-one servers alike:
+
+```puppet
+class { 'openvox_gui::enc':
+  api_base => ['https://console.example.com:4567'],
+}
+```
+
+That installs the module's copy of `enc.py`, writes the console URL to
+an environment file puppetserver's unit loads, sets `node_terminus =
+exec` and `external_nodes` in `puppet.conf`, and restarts
+`Service['puppetserver']` (declare it yourself, or set `restart_service
+=> false`). List several consoles to have them tried in order; that is a
+failover pair only when they share the GUI's database.
+
+The script verifies the console against the Puppet CA, which is right
+when the GUI serves the certificate the installer picks by default (the
+host's agent certificate). Set `ca_file` for another CA, or `tls_verify
+=> false` to skip verification.
+
+Classes the GUI assigns are merged with whatever `site.pp` declares, so
+this can be turned on next to an existing roles-and-profiles layout. A
+console outage does not fail compiles: the script returns an empty
+classification after its request times out. `ensure => absent` takes
+the wiring out again.
+
 ### Opening the firewall
 
 The module leaves the firewall to you, e.g. with `puppetlabs/firewall`:
@@ -206,12 +244,12 @@ with puppet-strings (`bundle exec rake strings:generate:reference`).
   service answers. Don't delete the
   `.puppet-install.conf` / `.puppet-install-version` stamp files in the
   install directory — they are the "already installed" markers.
-* **ENC**: the installer stages the GUI's external node classifier
-  (`scripts/enc.py`) but the module keeps it out of `puppet.conf`
-  (`CONFIGURE_ENC=false`; from OpenVox GUI 3.12.0 the installer's default
-  would otherwise auto-wire it on a co-located OpenVox Server). Enabling
-  it is a manual, deliberate step. If your control repository classifies
-  nodes with roles and profiles, leave it off.
+* **ENC**: the installer is told not to wire the GUI's external node
+  classifier into `puppet.conf` (`CONFIGURE_ENC=false`; from OpenVox GUI
+  3.12.0 its default would otherwise auto-wire it on a co-located OpenVox
+  Server). Enabling it is a deliberate step, `openvox_gui::enc`, and the
+  script it installs is the module's copy of upstream's rather than the
+  one under the console's install directory.
 * **Database**: SQLite (the upstream default) is assumed. The
   PostgreSQL/clustered backend can be selected via `extra_settings` but
   is untested by this module.

@@ -3,3 +3,4 @@ fixtures:
   forge_modules:
     stdlib: puppetlabs/stdlib
     vcsrepo: puppetlabs/vcsrepo
+    inifile: puppetlabs/inifile

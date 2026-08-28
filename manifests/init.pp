@@ -13,9 +13,11 @@
 # `version` or any configuration parameter re-runs the installer, which is
 # the upstream-supported update flow.
 #
-# The GUI's optional firewall, agent package mirror, and ENC integrations
-# are left off; manage the firewall port and puppet.conf wiring outside
-# this module. The installer writes sudoers rules for the service user to
+# The GUI's optional firewall and agent package mirror are left off;
+# manage the firewall port outside this module. The installer's ENC
+# wiring is left off too: `openvox_gui::enc` provides it as resources,
+# for compilers and all-in-one servers alike. The installer writes
+# sudoers rules for the service user to
 # `/etc/sudoers.d/openvox-gui-users`; if `saz/sudo` manages that host with
 # `purge => true`, set `sudo::purge_ignore: 'openvox-gui-users'`.
 #
