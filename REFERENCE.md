@@ -82,6 +82,8 @@ The following parameters are available in the `openvox_gui` class:
 * [`puppet_server_port`](#-openvox_gui--puppet_server_port)
 * [`puppetdb_host`](#-openvox_gui--puppetdb_host)
 * [`puppetdb_port`](#-openvox_gui--puppetdb_port)
+* [`puppet_ca_host`](#-openvox_gui--puppet_ca_host)
+* [`puppet_ca_port`](#-openvox_gui--puppet_ca_port)
 * [`ssl_enabled`](#-openvox_gui--ssl_enabled)
 * [`ssl_cert`](#-openvox_gui--ssl_cert)
 * [`ssl_key`](#-openvox_gui--ssl_key)
@@ -208,6 +210,28 @@ Data type: `Stdlib::Port`
 Port of the OpenVoxDB API.
 
 Default value: `8081`
+
+##### <a name="-openvox_gui--puppet_ca_host"></a>`puppet_ca_host`
+
+Data type: `Optional[Stdlib::Host]`
+
+Hostname of the certificate authority, when it is not the OpenVox
+Server in `puppet_server_host` (a dedicated CA or a CA round-robin
+name in a clustered estate). The GUI manages certificates through it,
+and from OpenVox GUI 3.14.0 the agent installers it hands out write
+it as the agents' `ca_server`; without it, agents enrolled from a
+clustered console would ask a compiler for a certificate. Unset, the
+installer's default applies: the CA is the OpenVox Server.
+
+Default value: `undef`
+
+##### <a name="-openvox_gui--puppet_ca_port"></a>`puppet_ca_port`
+
+Data type: `Stdlib::Port`
+
+Port of the certificate authority.
+
+Default value: `8140`
 
 ##### <a name="-openvox_gui--ssl_enabled"></a>`ssl_enabled`
 
@@ -396,8 +420,12 @@ a target itself.
 Sudo is deliberately not managed here. Granting the bolt user
 passwordless root on every node is an operator decision that belongs
 with whatever already manages sudoers (e.g. saz/sudo, whose purge would
-otherwise remove a hand-written file). Without it, GUI runs still work
-unprivileged; "Run privileged" and file transfers do not.
+otherwise remove a hand-written file). What the GUI needs of it: from
+OpenVox GUI 3.14.0 every privileged run escalates with `sudo -n`, so
+the grant must be NOPASSWD, and Bolt allocates a PTY, so a CIS-style
+`Defaults requiretty` is fine as long as it is not paired with a
+password prompt. Without sudo, GUI runs still work unprivileged; "Run
+privileged", file transfers, and Code Deploy on compilers do not.
 
 #### Examples
 
@@ -491,8 +519,8 @@ puppetserver's unit loads, and points `puppet.conf` at it — the steps
 of upstream's `scripts/bootstrap-compiler-enc.sh`, as managed resources.
 
 The script is this module's copy of upstream's (from OpenVox GUI
-3.12.1-dev.10); `enc_source` can point at another, such as the one
-under a console's install directory.
+3.14.0); `enc_source` can point at another, such as the one under a
+console's install directory.
 
 Classes the GUI assigns are merged with whatever `site.pp` declares,
 so an existing roles-and-profiles classification keeps working when

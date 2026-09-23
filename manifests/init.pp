@@ -68,6 +68,16 @@
 #   Hostname of the OpenVoxDB instance the GUI queries.
 # @param puppetdb_port
 #   Port of the OpenVoxDB API.
+# @param puppet_ca_host
+#   Hostname of the certificate authority, when it is not the OpenVox
+#   Server in `puppet_server_host` (a dedicated CA or a CA round-robin
+#   name in a clustered estate). The GUI manages certificates through it,
+#   and from OpenVox GUI 3.14.0 the agent installers it hands out write
+#   it as the agents' `ca_server`; without it, agents enrolled from a
+#   clustered console would ask a compiler for a certificate. Unset, the
+#   installer's default applies: the CA is the OpenVox Server.
+# @param puppet_ca_port
+#   Port of the certificate authority.
 # @param ssl_enabled
 #   Whether the GUI itself serves HTTPS. The defaults for `ssl_cert` and
 #   `ssl_key` reuse the node's own Puppet certificate, which covers the
@@ -141,6 +151,8 @@ class openvox_gui (
   Stdlib::Port $puppet_server_port = 8140,
   Stdlib::Host $puppetdb_host = $facts['networking']['fqdn'],
   Stdlib::Port $puppetdb_port = 8081,
+  Optional[Stdlib::Host] $puppet_ca_host = undef,
+  Stdlib::Port $puppet_ca_port = 8140,
   Boolean $ssl_enabled = true,
   Optional[Stdlib::Absolutepath] $ssl_cert = undef,
   Optional[Stdlib::Absolutepath] $ssl_key = undef,

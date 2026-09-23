@@ -5,6 +5,8 @@
       Stdlib::Port $puppet_server_port,
       Stdlib::Host $puppetdb_host,
       Stdlib::Port $puppetdb_port,
+      Optional[Stdlib::Host] $puppet_ca_host,
+      Stdlib::Port $puppet_ca_port,
       Boolean $ssl_enabled,
       Stdlib::Absolutepath $ssl_cert,
       Stdlib::Absolutepath $ssl_key,
@@ -31,6 +33,9 @@ PUPPET_SERVER_HOST=<%= $puppet_server_host %>
 PUPPET_SERVER_PORT=<%= $puppet_server_port %>
 PUPPETDB_HOST=<%= $puppetdb_host %>
 PUPPETDB_PORT=<%= $puppetdb_port %>
+# Blank means the CA is the OpenVox Server above (the installer's default).
+PUPPET_CA_HOST=<%= $puppet_ca_host %>
+PUPPET_CA_PORT=<%= $puppet_ca_port %>
 
 SSL_ENABLED=<%= $ssl_enabled %>
 <% if $ssl_enabled { -%>

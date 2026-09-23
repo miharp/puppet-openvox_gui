@@ -66,6 +66,13 @@ describe 'openvox_gui' do
           .with_unless(%r{cmp -s /opt/openvox-gui-src/VERSION /opt/openvox-gui-src/frontend/.built-version})
       end
 
+      it 'adds only the native bundler binding the lockfile names, without touching package.json' do
+        script = catalogue.resource('file', '/opt/openvox-gui-src/build-frontend.sh')[:content]
+        expect(script).to include('@rolldown/binding-linux-arm64-gnu', '@rollup/rollup-linux-arm64-gnu',
+                                  'npm install --no-save "$binding@$version"')
+        expect(script).to match(%r{require\("./package-lock.json"\)})
+      end
+
       it do
         expect(subject).to contain_file('/opt/openvox-gui-src/install.conf')
           .with_owner('root')
@@ -78,6 +85,17 @@ describe 'openvox_gui' do
         expect(install_conf).to include('INSTALL_DIR=/opt/openvox-gui', 'APP_PORT=4567',
                                         'ADMIN_USERNAME=admin', 'ADMIN_PASSWORD=supersecret',
                                         'SSL_ENABLED=true')
+      end
+
+      it 'leaves the CA to the installer default (the OpenVox Server) unless told otherwise' do
+        expect(install_conf).to match(/^PUPPET_CA_HOST=$/)
+        expect(install_conf).to include('PUPPET_CA_PORT=8140')
+      end
+
+      context 'with a separate certificate authority' do
+        let(:params) { super().merge(puppet_ca_host: 'ovca.example.com', puppet_ca_port: 8141) }
+
+        it { expect(install_conf).to include('PUPPET_CA_HOST=ovca.example.com', 'PUPPET_CA_PORT=8141') }
       end
 
       it 'keeps the build, firewall, mirror, and ENC out of the installer' do

@@ -37,6 +37,8 @@ class openvox_gui::config {
       'puppet_server_port' => $openvox_gui::puppet_server_port,
       'puppetdb_host'      => $openvox_gui::puppetdb_host,
       'puppetdb_port'      => $openvox_gui::puppetdb_port,
+      'puppet_ca_host'     => $openvox_gui::puppet_ca_host,
+      'puppet_ca_port'     => $openvox_gui::puppet_ca_port,
       'ssl_enabled'        => $openvox_gui::ssl_enabled,
       'ssl_cert'           => $ssl_cert,
       'ssl_key'            => $ssl_key,

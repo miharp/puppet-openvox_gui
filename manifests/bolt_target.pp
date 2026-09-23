@@ -12,8 +12,12 @@
 # Sudo is deliberately not managed here. Granting the bolt user
 # passwordless root on every node is an operator decision that belongs
 # with whatever already manages sudoers (e.g. saz/sudo, whose purge would
-# otherwise remove a hand-written file). Without it, GUI runs still work
-# unprivileged; "Run privileged" and file transfers do not.
+# otherwise remove a hand-written file). What the GUI needs of it: from
+# OpenVox GUI 3.14.0 every privileged run escalates with `sudo -n`, so
+# the grant must be NOPASSWD, and Bolt allocates a PTY, so a CIS-style
+# `Defaults requiretty` is fine as long as it is not paired with a
+# password prompt. Without sudo, GUI runs still work unprivileged; "Run
+# privileged", file transfers, and Code Deploy on compilers do not.
 #
 # @example Authorize the console's key on an agent
 #   class { 'openvox_gui::bolt_target':

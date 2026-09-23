@@ -28,7 +28,7 @@ unattended and repeatably:
 * checks out a pinned release tag with `vcsrepo`,
 * pre-builds the React frontend (the installer's own build path
   bootstraps Node.js through dnf module streams, which no longer exist on
-  EL10, and misses the rollup native binding on aarch64),
+  EL10, and misses the bundler's native binding on aarch64),
 * renders the installer's answer file from the class parameters, and
 * runs `install.sh -c` non-interactively, re-running it exactly when the
   pinned version or the configuration changes — which is the
@@ -74,9 +74,11 @@ optional agent package mirror — those stay under your control (see
   user's rules to `/etc/sudoers.d/`. The module does not manage the
   sudo package itself, to stay out of the way of modules that do
   (e.g. `saz/sudo`).
-* Node.js >= 18 must be installable as the `nodejs` package (true on the
-  supported platforms). On platforms whose default Node.js is older
-  (e.g. EL9 ships 16), provide Node.js 18+ yourself and set
+* Node.js must be installable as the `nodejs` package (true on the
+  supported platforms) and new enough for the release being built:
+  OpenVox GUI 3.14.0 (Vite 8) needs Node.js 20.19 or 22.12 and later,
+  3.12.0 and earlier 18+. On platforms whose default Node.js is older
+  (e.g. EL9 ships 16), provide it yourself and set
   `manage_dependencies => false`.
 * Outbound HTTPS to github.com (git checkout) and to the npm and PyPI
   registries (frontend build, virtualenv creation).
@@ -94,7 +96,7 @@ certificate:
 
 ```puppet
 class { 'openvox_gui':
-  version        => '3.10.6',
+  version        => '3.14.0',
   admin_password => Sensitive('supersecret'),
 }
 ```
@@ -106,14 +108,24 @@ covers the certname only). Log in as `admin` with the given password.
 
 ### Pointing at remote backends
 
+A dedicated console names the compiler it compiles through, the
+OpenVoxDB it queries and, when that is not the compiler, the CA it
+manages certificates through:
+
 ```puppet
 class { 'openvox_gui':
-  version            => '3.10.6',
+  version            => '3.14.0',
   admin_password     => Sensitive('supersecret'),
   puppet_server_host => 'compiler01.example.com',
   puppetdb_host      => 'puppetdb.example.com',
+  puppet_ca_host     => 'ca.example.com',
 }
 ```
+
+`puppet_ca_host` matters beyond certificate management: from OpenVox
+GUI 3.14.0 the agent installers the console hands out write it as the
+agents' `ca_server`, and an agent pointed at a compiler with no CA set
+refuses to enroll.
 
 ### Arbitrary installer settings
 
@@ -123,7 +135,7 @@ file wins:
 
 ```puppet
 class { 'openvox_gui':
-  version        => '3.10.6',
+  version        => '3.14.0',
   admin_password => Sensitive('supersecret'),
   extra_settings => {
     'OPENVOX_GUI_DB_BACKEND' => 'postgresql',
@@ -158,16 +170,17 @@ class { 'openvox_gui::bolt_target':
 }
 ```
 
-Two things stay with you. **Sudo**: "Run privileged" prefixes commands
-with `sudo`, and file transfers run as root, so the bolt user needs
+Sudo stays with you. "Run privileged", file transfers, and Code Deploy
+on compilers escalate with `sudo -n` (from OpenVox GUI 3.14.0, on a
+PTY, so `Defaults requiretty` is tolerated), so the bolt user needs
 passwordless sudo on each target — the module leaves that to whatever
 already manages sudoers (e.g. `sudo::conf { 'bolt': content => 'bolt
 ALL=(ALL) NOPASSWD: ALL' }` with saz/sudo), since it is a fleet-wide
-root grant that should be an explicit decision. **The console's
-`inventory.yaml`**: targets are resolved from OpenVoxDB, so it only
-needs SSH settings; upstream's `bolt-plugin/inventory.yaml.example`
-(user `bolt`, the key above, `tmpdir: /home/bolt/.bolt/tmp`) is the
-template.
+root grant that should be an explicit decision. The console's Bolt
+inventory needs nothing from you: the GUI generates it, with the SSH
+settings above and targets resolved through its `openvox_enc` plugin
+from the ENC and the live fleet, so a compiler must be classified and
+reporting to be a Code Deploy target.
 
 ### Classifying nodes from the GUI
 
@@ -218,7 +231,7 @@ firewall { '200 allow openvox-gui':
 
 ```puppet
 class { 'openvox_gui':
-  version        => '3.10.6',
+  version        => '3.14.0',
   admin_password => Sensitive('supersecret'),
   repo_source    => 'https://github.com/example/openvox-gui.git',
   revision       => 'my-feature-branch',
@@ -254,8 +267,8 @@ with puppet-strings (`bundle exec rake strings:generate:reference`).
   PostgreSQL/clustered backend can be selected via `extra_settings` but
   is untested by this module.
 * Only the platforms in `metadata.json` are tested. EL9 works with
-  `manage_dependencies => false` and a self-provided Node.js 18+
-  (e.g. `dnf module switch-to nodejs:20`).
+  `manage_dependencies => false` and a self-provided Node.js of the
+  required version (e.g. `dnf module switch-to nodejs:22`).
 * The GUI polls the OpenVox Server's `/metrics/v2` (Jolokia) endpoint,
   which the default `auth.conf` denies; dashboard JVM metrics stay empty
   (and the journal logs 403s) until you allow it there.

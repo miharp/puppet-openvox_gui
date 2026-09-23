@@ -11,8 +11,8 @@
 # of upstream's `scripts/bootstrap-compiler-enc.sh`, as managed resources.
 #
 # The script is this module's copy of upstream's (from OpenVox GUI
-# 3.12.1-dev.10); `enc_source` can point at another, such as the one
-# under a console's install directory.
+# 3.14.0); `enc_source` can point at another, such as the one under a
+# console's install directory.
 #
 # Classes the GUI assigns are merged with whatever `site.pp` declares,
 # so an existing roles-and-profiles classification keeps working when

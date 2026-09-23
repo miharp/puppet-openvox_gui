@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-09-23
+
+* New `puppet_ca_host` / `puppet_ca_port` parameters for a certificate
+  authority that is not the OpenVox Server. Previously only reachable
+  through `extra_settings`; from OpenVox GUI 3.14.0 the agent installers
+  the console hands out write it as the agents' `ca_server`, and refuse
+  to enroll an agent against a compiler without it
+* The frontend build adds the native bundler binding aarch64 needs from
+  what the checked-out lockfile names — rolldown's after OpenVox GUI
+  3.12.0 (Vite 8), rollup's up to it — at the lockfile's version and with
+  `--no-save`, so the pinned checkout stays clean
+* Refresh the module's copy of `enc.py` to OpenVox GUI 3.14.0
+  (docstring only: upstream dropped its internal example URLs)
+* Document what OpenVox GUI 3.14.0 asks of hosts: Node.js 20.19+ or
+  22.12+ to build the frontend, and NOPASSWD sudo for the bolt user on
+  targets, which the GUI now escalates through with `sudo -n` on a PTY
+
 ## [0.3.0] - 2026-08-28
 
 * New `openvox_gui::enc` class: wires a catalog compiler (or an
