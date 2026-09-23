@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2026-09-23
+
+* Install the GUI's `openvox_enc` Bolt inventory plugin into the console's
+  Bolt project from the checkout when `configure_bolt` is on. The upstream
+  installer copies it from `<install_dir>/bolt-plugin`, which only its
+  `update_local.sh` ever populates, so an install leaves the module
+  directory empty — and from OpenVox GUI 3.14.0 the inventory resolves
+  targets through that plugin alone, failing every GUI Bolt run with
+  `Unknown plugin: 'openvox_enc'`
+
 ## [0.4.0] - 2026-09-23
 
 * New `puppet_ca_host` / `puppet_ca_port` parameters for a certificate

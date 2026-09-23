@@ -180,7 +180,11 @@ root grant that should be an explicit decision. The console's Bolt
 inventory needs nothing from you: the GUI generates it, with the SSH
 settings above and targets resolved through its `openvox_enc` plugin
 from the ENC and the live fleet, so a compiler must be classified and
-reporting to be a Code Deploy target.
+reporting to be a Code Deploy target. The module installs that plugin
+into the console's Bolt project from the checkout (with `configure_bolt`),
+because the upstream installer means to but never copies it into place on
+an install; without it every GUI Bolt run fails with `Unknown plugin:
+'openvox_enc'`.
 
 ### Classifying nodes from the GUI
 

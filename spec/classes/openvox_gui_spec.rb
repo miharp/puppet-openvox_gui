@@ -150,10 +150,23 @@ describe 'openvox_gui' do
         expect(install_conf).to include('CONFIGURE_BOLT=true')
       end
 
+      describe 'the openvox_enc inventory plugin the installer forgets' do
+        let(:src) { '/opt/openvox-gui-src/bolt-plugin/openvox_enc' }
+        let(:dst) { '/etc/puppetlabs/bolt/modules/openvox_enc' }
+
+        it 'is installed from the checkout, replaced when it differs, after the installer' do
+          expect(subject).to contain_exec('openvox_gui install openvox_enc bolt plugin')
+            .with_command(/cp -a #{src} #{dst}/)
+            .with_onlyif("/usr/bin/test -d #{src}").with_unless("/usr/bin/diff -rq #{src} #{dst}")
+            .that_requires('Exec[openvox_gui run installer]')
+        end
+      end
+
       context 'with configure_bolt => false' do
         let(:params) { super().merge(configure_bolt: false) }
 
         it { expect(install_conf).to include('CONFIGURE_BOLT=false') }
+        it { is_expected.not_to contain_exec('openvox_gui install openvox_enc bolt plugin') }
       end
 
       it do

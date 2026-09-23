@@ -112,4 +112,25 @@ class openvox_gui::config {
     ensure  => absent,
     require => Exec['openvox_gui run installer'],
   }
+
+  # The installer's Bolt step copies the GUI's openvox_enc inventory plugin
+  # into the Bolt project from <install_dir>/bolt-plugin, but nothing puts
+  # it there on an install (only upstream's update_local.sh does), so the
+  # project's module directory stays empty. From OpenVox GUI 3.14.0 the
+  # inventory the GUI generates resolves targets through that plugin alone,
+  # and every GUI Bolt run then fails with "Unknown plugin: 'openvox_enc'".
+  # Installed here from the checkout, the way the installer means to: a
+  # fresh copy owned root:bolt, replaced whenever it differs from the
+  # checked-out release. Bolt reads modules per run, so nothing to restart.
+  if $openvox_gui::configure_bolt {
+    $plugin_src = "${src_dir}/bolt-plugin/openvox_enc"
+    $plugin_dst = '/etc/puppetlabs/bolt/modules/openvox_enc'
+
+    exec { 'openvox_gui install openvox_enc bolt plugin':
+      command => "/bin/bash -c 'rm -rf ${plugin_dst} && cp -a ${plugin_src} ${plugin_dst} && chown -R root:bolt ${plugin_dst}'",
+      onlyif  => "/usr/bin/test -d ${plugin_src}",
+      unless  => "/usr/bin/diff -rq ${plugin_src} ${plugin_dst}",
+      require => Exec['openvox_gui run installer'],
+    }
+  }
 }
