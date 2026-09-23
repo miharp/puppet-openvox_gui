@@ -122,13 +122,17 @@ class openvox_gui::config {
   # Installed here from the checkout, the way the installer means to: a
   # fresh copy owned root:bolt, replaced whenever it differs from the
   # checked-out release. Bolt reads modules per run, so nothing to restart.
+  # Only once the installer has created the Bolt project (its Bolt step
+  # exists from 3.12.0); releases before that ship the plugin source but
+  # have no project, module directory or bolt group to install it into.
   if $openvox_gui::configure_bolt {
     $plugin_src = "${src_dir}/bolt-plugin/openvox_enc"
-    $plugin_dst = '/etc/puppetlabs/bolt/modules/openvox_enc'
+    $plugin_modules = '/etc/puppetlabs/bolt/modules'
+    $plugin_dst = "${plugin_modules}/openvox_enc"
 
     exec { 'openvox_gui install openvox_enc bolt plugin':
       command => "/bin/bash -c 'rm -rf ${plugin_dst} && cp -a ${plugin_src} ${plugin_dst} && chown -R root:bolt ${plugin_dst}'",
-      onlyif  => "/usr/bin/test -d ${plugin_src}",
+      onlyif  => "/bin/bash -c 'test -d ${plugin_src} && test -d ${plugin_modules}'",
       unless  => "/usr/bin/diff -rq ${plugin_src} ${plugin_dst}",
       require => Exec['openvox_gui run installer'],
     }

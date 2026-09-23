@@ -157,7 +157,8 @@ describe 'openvox_gui' do
         it 'is installed from the checkout, replaced when it differs, after the installer' do
           expect(subject).to contain_exec('openvox_gui install openvox_enc bolt plugin')
             .with_command(/cp -a #{src} #{dst}/)
-            .with_onlyif("/usr/bin/test -d #{src}").with_unless("/usr/bin/diff -rq #{src} #{dst}")
+            .with_onlyif("/bin/bash -c 'test -d #{src} && test -d /etc/puppetlabs/bolt/modules'")
+            .with_unless("/usr/bin/diff -rq #{src} #{dst}")
             .that_requires('Exec[openvox_gui run installer]')
         end
       end

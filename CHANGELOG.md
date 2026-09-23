@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2026-09-23
+
+* Only install the `openvox_enc` plugin once the installer has created the
+  Bolt project: releases before 3.12.0 ship the plugin source but have no
+  project, module directory or bolt group, and 0.4.1 failed the run there
+
 ## [0.4.1] - 2026-09-23
 
 * Install the GUI's `openvox_enc` Bolt inventory plugin into the console's
