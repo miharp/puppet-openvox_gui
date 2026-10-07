@@ -685,4 +685,3 @@ $facts['os']['family'] ? {
     'Debian' => 'python3-yaml',
     default  => 'python3-pyyaml'
 ```
-
